@@ -27,6 +27,7 @@ selected_joints = np.concatenate(([0,1,2,3,4,5,6,7,8,9,10],
 folder = 'val' # 'train', 'test'
 npy_folder = 'val_npy/npy3' # 'train_npy/npy3', 'test_npy/npy3'
 out_folder = 'val_frames' # 'train_frames' 'test_frames'
+# ciao
 
 
 
