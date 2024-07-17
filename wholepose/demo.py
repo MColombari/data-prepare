@@ -122,7 +122,7 @@ def main():
         for i, path in enumerate(paths):
             # if i > 1:
             #     break
-            output_npy = 'npy3/{}.npy'.format(names[i])
+            output_npy = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/npy3/{}.npy'.format(names[i])
 
             if os.path.exists(output_npy):
                 continue
@@ -130,10 +130,10 @@ def main():
             cap = cv2.VideoCapture(path)
 
 
-            frame_width = int(cap.get(3))
-            frame_height = int(cap.get(4))
-            # frame_width = 256
-            # frame_height = 256
+            # frame_width = int(cap.get(3))
+            # frame_height = int(cap.get(4))
+            frame_width = 256
+            frame_height = 256
             print(path)
             # output_filename = os.path.join('out_test', names[i]) 
 
@@ -148,7 +148,7 @@ def main():
                     print("Ignoring empty camera frame.")
                     # If loading a video, use 'break' instead of 'continue'.
                     break
-                # img = cv2.resize(img, (256,256))
+                img = cv2.resize(img, (256,256))
                 frame_height, frame_width = img.shape[:2]
                 img = cv2.flip(img, flipCode=1)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
