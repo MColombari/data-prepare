@@ -1,0 +1,8 @@
+# Personal data
+
+wholepose/out/
+wholepose/npy3/
+wholepose/local_video_data/
+wholepose/hrnet_w48_coco_wholebody_384x288-6e061c6a_20200922.pth
+wholepose/__pycache__/
+wholepose/config/__pycache__/

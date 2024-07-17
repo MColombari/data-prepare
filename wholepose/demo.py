@@ -30,7 +30,7 @@ from natsort import natsorted
 mean = (0.485, 0.456, 0.406)
 std = (0.229, 0.224, 0.225)
 
-SKIP_VIDEO_NUMBER = 1000
+SKIP_VIDEO_NUMBER = 0
 
 index_mirror = np.concatenate([
                 [1,3,2,5,4,7,6,9,8,11,10,13,12,15,14,17,16],
@@ -76,7 +76,7 @@ def main():
         print(newmodel)
         # dump_output = newmodel(dump_input)
         # print(dump_output.size())
-        checkpoint = torch.load('/work/cvcs2024/SLR_sentiment_enhanced/model_weights/data-prepare/hrnet_w48_coco_wholebody_384x288-6e061c6a_20200922.pth')
+        checkpoint = torch.load('hrnet_w48_coco_wholebody_384x288-6e061c6a_20200922.pth')
         # newmodel.load_state_dict(checkpoint['state_dict'])
 
 
@@ -97,7 +97,7 @@ def main():
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
 
-        input_path = '/work/cvcs2024/SLR_sentiment_enhanced/datasets/WLASL/WLASL/start_kit/data/val'
+        input_path = 'local_video_data'
         paths = []
         names = []
         for root, _, fnames in natsorted(os.walk(input_path)):
@@ -130,16 +130,16 @@ def main():
             cap = cv2.VideoCapture(path)
 
 
-            frame_width = int(cap.get(3))
-            frame_height = int(cap.get(4))
-            # frame_width = 256
-            # frame_height = 256
+            # frame_width = int(cap.get(3))
+            # frame_height = int(cap.get(4))
+            frame_width = 256
+            frame_height = 256
             print(path)
-            # output_filename = os.path.join('out_test', names[i]) 
+            output_filename = os.path.join('out_test', names[i]) 
 
             # img = Image.open(image_path)
-            # fps = cap.get(cv2.CAP_PROP_FPS)
-            # writer = cv2.VideoWriter(output_filename,cv2.VideoWriter_fourcc('M','P','4','V'), 5, (frame_width,frame_height))
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            writer = cv2.VideoWriter(output_filename,cv2.VideoWriter_fourcc('m','p','4','v'), 5, (frame_width,frame_height))
             output_list = []
             
             while cap.isOpened():
@@ -148,7 +148,7 @@ def main():
                     print("Ignoring empty camera frame.")
                     # If loading a video, use 'break' instead of 'continue'.
                     break
-                # img = cv2.resize(img, (256,256))
+                img = cv2.resize(img, (256,256))
                 frame_height, frame_width = img.shape[:2]
                 img = cv2.flip(img, flipCode=1)
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -194,12 +194,12 @@ def main():
                 # print(arg.cpu().numpy())
                 # np.save('npy/{}.npy'.format(names[i]), np.array([x,y,score]).transpose())
                 output_list.append(pred)
-                # img = np.asarray(img)
-                # for j in range(133):
-                #     img = cv2.circle(img, (int(x[j]), int(y[j])), radius=2, color=(255,0,0), thickness=-1)
-                # img = plot_pose(img, pred)
-                # cv2.imwrite('out/{}.png'.format(names[i]), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
-                # writer.write(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+                img = np.asarray(img)
+                for j in range(133):
+                    img = cv2.circle(img, (int(x[j]), int(y[j])), radius=2, color=(255,0,0), thickness=-1)
+                img = plot_pose(img, pred)
+                cv2.imwrite('out/{}.png'.format(names[i]), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+                writer.write(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
             output_list = np.array(output_list)
             # print(output_list.shape)
             np.save(output_npy, output_list)
