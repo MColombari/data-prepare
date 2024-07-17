@@ -2,8 +2,6 @@
 # from __future__ import division
 # from __future__ import print_function
 
-#prova
-
 import argparse
 import os
 import pprint
