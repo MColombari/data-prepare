@@ -30,6 +30,8 @@ from natsort import natsorted
 mean = (0.485, 0.456, 0.406)
 std = (0.229, 0.224, 0.225)
 
+SKIP_VIDEO_NUMBER = 1000
+
 index_mirror = np.concatenate([
                 [1,3,2,5,4,7,6,9,8,11,10,13,12,15,14,17,16],
                 [21,22,23,18,19,20],
@@ -112,8 +114,8 @@ def main():
         start_step = 6
         # paths = paths[start_step*step:(start_step+1)*step]
         # names = names[start_step*step:(start_step+1)*step]
-        paths = paths[4200:]
-        names = names[4200:]
+        paths = paths[SKIP_VIDEO_NUMBER:]
+        names = names[SKIP_VIDEO_NUMBER:]
         paths = paths[::-1]
         names = names[::-1]
 
