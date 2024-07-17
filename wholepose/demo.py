@@ -67,7 +67,7 @@ def merge_hm(hms_list):
 
 def main():
     with torch.no_grad():
-        config = 'wholebody_w48_384x288.yaml'
+        config = 'wholepose/wholebody_w48_384x288.yaml'
         cfg.merge_from_file(config)
 
         # dump_input = torch.randn(1, 3, 256, 256)
