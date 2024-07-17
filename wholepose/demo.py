@@ -73,7 +73,7 @@ def main():
         print(newmodel)
         # dump_output = newmodel(dump_input)
         # print(dump_output.size())
-        checkpoint = torch.load('./hrnet_w48_coco_wholebody_384x288-6e061c6a_20200922.pth')
+        checkpoint = torch.load('/work/cvcs2024/SLR_sentiment_enhanced/model_weights/data-prepare/hrnet_w48_coco_wholebody_384x288-6e061c6a_20200922.pth')
         # newmodel.load_state_dict(checkpoint['state_dict'])
 
 
@@ -94,7 +94,7 @@ def main():
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
 
-        input_path = '/home/ubuntu/workspace/data/sign/val'
+        input_path = '/work/cvcs2024/SLR_sentiment_enhanced/datasets/WLASL/WLASL/start_kit/data/val'
         paths = []
         names = []
         for root, _, fnames in natsorted(os.walk(input_path)):
