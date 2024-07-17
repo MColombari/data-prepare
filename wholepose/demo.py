@@ -61,8 +61,9 @@ def merge_hm(hms_list):
     # print(hm.size(0))
     hm = torch.mean(hms, dim=0)
     return hm
-def main():
 
+
+def main():
     with torch.no_grad():
         config = 'wholebody_w48_384x288.yaml'
         cfg.merge_from_file(config)
