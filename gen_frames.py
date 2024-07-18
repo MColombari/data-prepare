@@ -8,7 +8,7 @@ def crop(image, center, radius, size=512):
     center_crop = (center).astype(np.int32)
 
     rect = (max(0,(center_crop-radius_crop)[0]), max(0,(center_crop-radius_crop)[1]), 
-                 min(512,(center_crop+radius_crop)[0]), min(512,(center_crop+radius_crop)[1]))
+                 min(size,(center_crop+radius_crop)[0]), min(size,(center_crop+radius_crop)[1]))
 
     image = image[rect[1]:rect[3],rect[0]:rect[2],:]
 
