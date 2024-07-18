@@ -30,7 +30,7 @@ from natsort import natsorted
 mean = (0.485, 0.456, 0.406)
 std = (0.229, 0.224, 0.225)
 
-SKIP_VIDEO_NUMBER = 1000
+SKIP_VIDEO_NUMBER = 0
 
 index_mirror = np.concatenate([
                 [1,3,2,5,4,7,6,9,8,11,10,13,12,15,14,17,16],
