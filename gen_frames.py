@@ -34,6 +34,9 @@ for root, dirs, files in os.walk(folder, topdown=False):
     for name in files:
         if 'color' in name:
             print(os.path.join(root, name))
+            print(name)
+            if 'signer13' not in name:
+                continue
             if  not os.path.exists(os.path.join(npy_folder, name + '.npy')):
                 continue
             cap = cv2.VideoCapture(os.path.join(root, name))
@@ -49,6 +52,12 @@ for root, dirs, files in os.walk(folder, topdown=False):
             while True:
                 ret, frame = cap.read()
                 if ret:
+                    print(f'xy_max: {xy_max}, xy_min:{xy_min}')
+                    print(xy_center)
+                    print(frame.shape)
+                    frame = cv2.circle(frame, (int(xy_center[0]), int(xy_center[1])), radius=20, color=(255,0,0), thickness=-1)
+                    cv2.imwrite(os.path.join(out_folder, name[:-10], '{:04d}_non_crop.jpg'.format(index+1)), frame)
+                    
                     image = crop(frame, xy_center, xy_radius)
                 else:
                     break
