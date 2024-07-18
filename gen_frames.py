@@ -24,10 +24,9 @@ def crop(image, center, radius, size=512):
 
 selected_joints = np.concatenate(([0,1,2,3,4,5,6,7,8,9,10], 
                     [91,95,96,99,100,103,104,107,108,111],[112,116,117,120,121,124,125,128,129,132]), axis=0) 
-folder = 'val' # 'train', 'test'
-npy_folder = 'val_npy/npy3' # 'train_npy/npy3', 'test_npy/npy3'
-out_folder = 'val_frames' # 'train_frames' 'test_frames'
-# ciao
+folder = '/work/cvcs2024/SLR_sentiment_enhanced/datasets/WLASL/WLASL/start_kit/data/val' # 'train', 'test'
+npy_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/val_npy/npy3' #'val_npy/npy3' # 'train_npy/npy3', 'test_npy/npy3'
+out_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/val_frames/WLASL' # 'train_frames' 'test_frames'
 
 
 
@@ -35,6 +34,8 @@ for root, dirs, files in os.walk(folder, topdown=False):
     for name in files:
         if 'color' in name:
             print(os.path.join(root, name))
+            if  not os.path.exists(os.path.join(npy_folder, name + '.npy')):
+                continue
             cap = cv2.VideoCapture(os.path.join(root, name))
             npy = np.load(os.path.join(npy_folder, name + '.npy')).astype(np.float32)
             npy = npy[:, selected_joints, :2]
