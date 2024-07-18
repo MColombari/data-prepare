@@ -124,9 +124,6 @@ def main():
             #     break
             output_npy = 'npy3/{}.npy'.format(names[i])
 
-            if os.path.exists(output_npy):
-                continue
-
             cap = cv2.VideoCapture(path)
 
 
@@ -195,8 +192,19 @@ def main():
                 # np.save('npy/{}.npy'.format(names[i]), np.array([x,y,score]).transpose())
                 output_list.append(pred)
                 img = np.asarray(img)
+                xy_max = (x.max(keepdims=False), y.max(keepdims=False))
+                # print(x)
+                # print(x.max(keepdims=False))
+                # print(x.min(keepdims=False))
+                xy_min = (x.min(keepdims=False), y.min(keepdims=False))
+                # print(y)
+                # print(y.max(keepdims=False))
+                # print(y.min(keepdims=False))
+                xy_center = ((xy_max[0] + xy_min[0]) / 2, (xy_max[1] + xy_min[1]) / 2)
+                # xy_radius = (xy_max - xy_center).max(axis=0)
                 for j in range(133):
                     img = cv2.circle(img, (int(x[j]), int(y[j])), radius=2, color=(255,0,0), thickness=-1)
+                img = cv2.circle(img, (int(xy_center[0]), int(xy_center[1])), radius=5, color=(0,0,255), thickness=-1)
                 img = plot_pose(img, pred)
                 cv2.imwrite('out/{}.png'.format(names[i]), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
                 writer.write(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))

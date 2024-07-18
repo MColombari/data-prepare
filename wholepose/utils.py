@@ -175,10 +175,21 @@ def plot_pose(img,result,scale=(1.0,1.0)):
     #img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     #print(kp_scores.size())
     # Draw keypoints
+
+    indexs = [i for i in range(133) if (i not in unshown_pts) and (kp_scores[i] > 0.1)]
+    center = (int(round((kp_preds[indexs,0].max(keepdims=False) + kp_preds[indexs,0].min(keepdims=False))/2)),
+              int(round((kp_preds[indexs,1].max(keepdims=False) + kp_preds[indexs,1].min(keepdims=False))/2)))
+    print(kp_preds[indexs,0].max(keepdims=False))
+    print(kp_preds[indexs,0].min(keepdims=False))
+    print(center)
+    cv2.circle(img, center, 5, (255,0,255), -1)
+
     for n in range(kp_scores.shape[0]):
         if kp_scores[n] <= 0.1 or n in unshown_pts:
             continue
         cor_x, cor_y = int(round(kp_preds[n, 0] * scale[0])), int(round(kp_preds[n, 1] * scale[1]))
+        assert cor_x < 256
+        assert cor_y < 256
         part_line[n] = (cor_x, cor_y)
         cv2.circle(img, (cor_x, cor_y), 2, (0,0,255), -1)
     # Draw limbs
