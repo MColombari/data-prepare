@@ -35,7 +35,7 @@ for root, dirs, files in os.walk(folder, topdown=False):
         if 'color' in name:
             print(os.path.join(root, name))
             print(name)
-            if 'signer13' not in name:
+            if 'signer11' not in name:
                 continue
             if  not os.path.exists(os.path.join(npy_folder, name + '.npy')):
                 continue
@@ -52,8 +52,22 @@ for root, dirs, files in os.walk(folder, topdown=False):
             while True:
                 ret, frame = cap.read()
                 if ret:
+                    height, width, channels = frame.shape
+                    print(f'image size {height}, {width}')
+                    if height < 512 or width < 512:
+                        if height < 512 and width < 512:
+                            scale_factor = max((512 / height, 512 / width))
+                        elif height < 512:
+                            scale_factor = 512 / height
+                        elif width < 512:
+                            scale_factor = 512 / width
+                        height = np.ceil(height * scale_factor)
+                        width = np.ceil(width * scale_factor)
+                        frame = cv2.resize(frame, dsize=(int(height), int(width)))
+                        print(f'image size crop {height}, {width}') 
+
                     print(f'xy_max: {xy_max}, xy_min:{xy_min}')
-                    print(xy_center)
+                    print(f'center: {xy_center}')
                     print(frame.shape)
                     frame = cv2.circle(frame, (int(xy_center[0]), int(xy_center[1])), radius=20, color=(255,0,0), thickness=-1)
                     cv2.imwrite(os.path.join(out_folder, name[:-10], '{:04d}_non_crop.jpg'.format(index+1)), frame)
