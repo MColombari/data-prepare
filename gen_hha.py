@@ -52,11 +52,11 @@ for root, dirs, files in os.walk(folder, topdown=False):
             color_name = name.replace('depth', 'color')
             npy = np.load(os.path.join(npy_folder, color_name + '.npy')).astype(np.float32)
             npy = npy[:, selected_joints, :2]
-            npy[:, :, 0] = 512 - npy[:, :, 0]
+            # npy[:, :, 0] = 512 - npy[:, :, 0]
             xy_max = npy.max(axis=1, keepdims=False).max(axis=0, keepdims=False)
             xy_min = npy.min(axis=1, keepdims=False).min(axis=0, keepdims=False)
             assert xy_max.shape == (2,)
-            xy_center = (xy_max + xy_min) / 2 - 20
+            xy_center = (xy_max + xy_min) / 2 # - 20 why?!?!?!?!?
             xy_radius = (xy_max - xy_center).max(axis=0)
             index = 0
 
