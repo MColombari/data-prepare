@@ -122,7 +122,7 @@ def main():
         for i, path in enumerate(paths):
             # if i > 1:
             #     break
-            output_npy = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/val_npy/npy3/{}.npy'.format(names[i])
+            output_npy = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/val_npy/{}.npy'.format(names[i])
 
             if os.path.exists(output_npy):
                 continue
