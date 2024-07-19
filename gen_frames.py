@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+from wholepose.utils import plot_31_pose
 
 def crop(image, center, radius, size=512):
     scale = 1.3
@@ -28,21 +29,6 @@ folder = '/work/cvcs2024/SLR_sentiment_enhanced/datasets/WLASL/WLASL/start_kit/d
 npy_folder = '/work/cvcs2024/SLR_sentiment_enhanced/tmp2' #'val_npy/npy3' # 'train_npy/npy3', 'test_npy/npy3'
 out_folder = 'prova_frames' #'/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/val_frames/WLASL' # 'train_frames' 'test_frames'
 
-
-
-def plot_31_pose(image, center_p, keypoints_joints, scale=((1.0,1.0))):
-    for n in range(keypoints_joints.shape[0]):
-        cor_x, cor_y = int(keypoints_joints[n, 0] * scale[0]), int(keypoints_joints[n, 1] * scale[1])
-
-        frame_height, frame_width = image.shape[:2]
-        assert cor_x < frame_height
-        assert cor_y < frame_width
-
-        image = cv2.circle(image, (cor_x, cor_y), radius=2, color=(255,0,0), thickness=-1)
-    # draw center   
-    image = cv2.circle(image, (int(center_p[0]), int(center_p[1])), radius=2, color=(0, 0, 255), thickness=-1)
-
-    return image
 
 
 for root, dirs, files in os.walk(folder, topdown=False):
