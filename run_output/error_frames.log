@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/homes/nrossi/code/SLR_Sentiment_Enhanced/data-prepare/gen_frames.py", line 83, in <module>
+    img = plot_31_pose(frame, xy_center, npy)
+  File "/homes/nrossi/code/SLR_Sentiment_Enhanced/data-prepare/gen_frames.py", line 37, in plot_31_pose
+    cor_x, cor_y = int(kp_preds[n, 0] * scale[0]), int(kp_preds[n, 1] * scale[1])
+TypeError: only size-1 arrays can be converted to Python scalars
