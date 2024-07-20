@@ -1,3 +1,5 @@
 run_output/error.log
 run_output/output.log
 prova_frames/
+
+.pyc
