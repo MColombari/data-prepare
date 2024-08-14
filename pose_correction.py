@@ -18,7 +18,14 @@ def calculate_rotation_angle(joint1, joint2):
     delta_y = joint2[1] - joint1[1]
     delta_x = joint2[0] - joint1[0]
     
-    angle = np.arctan2(delta_y, delta_x)
+    angle = np.arctan2(delta_y, delta_x) * 180/np.pi
+    
+    if angle > 90:
+        angle -= 180
+    
+    if angle < -90:
+        angle += 180
+    
     return angle
 
 def rotate_image_and_joints(joints, angle, center):
