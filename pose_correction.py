@@ -14,7 +14,14 @@ def calculate_rotation_angle(joint1, joint2):
     delta_y = joint2[1] - joint1[1]
     delta_x = joint2[0] - joint1[0]
     
-    angle = np.arctan2(delta_y, delta_x)
+    angle = np.arctan2(delta_y, delta_x) * 180/np.pi
+    
+    if angle > 90:
+        angle -= 180
+    
+    if angle < -90:
+        angle += 180
+    
     return angle
 
 def rotate_image_and_joints(joints, angle, center):
@@ -51,8 +58,12 @@ image_path = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepar
 #output_path = '/homes/omoussadek/CV/SLR_Sentiment_Enhanced/data-prepare/signer4_sample334/0011_correct_pose.jpg'
 npy_path='/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/train_npy/signer4_sample334_color.mp4.npy'
 
+
+
 # Load npy data
 npy = np.load(npy_path).astype(np.float32)
+print(npy[1,5,:])
+print(npy[1,6,:])
 npy = npy[:, selected_joints, :2]
 
 print(npy[1,shoulder_joints,:])
