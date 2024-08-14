@@ -3,7 +3,11 @@ import numpy as np
 import math
 import os
 from wholepose.utils import plot_31_pose
+
+from PIL import Image
             
+
+OUT_TEST_FOLDER = "/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/test_folder"
 
 # Selection shoulders' joints
 # Calculate rotation angle
@@ -42,23 +46,42 @@ def translate_image_and_joints(image, joints, translation):
     
     return translated_image, translated_joints
 
+
+def plot_skeleton_depth(npy, img, name_file):
+    position_to_plot = [0,5,6, 9, 10]
+
+    img = np.asarray(img)
+    print(img.shape)
+    for pos in position_to_plot:
+        x = 255 - npy[pos, 0]
+        y = npy[pos, 1]
+        print(f"x: {x}, y: {y}, z:{npy[pos, 2]}, pos: {pos}")
+        img = cv2.circle(img, (int(x), int(y)), radius=int(20*npy[pos, 2]), color=(255,0,0), thickness=0)
+    img = Image.fromarray(img)
+    img.save(f'{OUT_TEST_FOLDER}/{name_file}.png')
+    # cv2.imwrite('OUT_TEST_FOLDER/{}.png'.format('test'), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+
+
 selected_joints = np.concatenate(([0,1,2,3,4,5,6,7,8,9,10], 
                     [91,95,96,99,100,103,104,107,108,111],[112,116,117,120,121,124,125,128,129,132]), axis=0) 
 shoulder_joints=[5,6]
 
 # Path
-image_path = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/train_frames/WLASL/signer4_sample334/0011.jpg'
+image_path = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/train_frames/WLASL/signer4_sample334/0003.jpg'
 #output_path = '/homes/omoussadek/CV/SLR_Sentiment_Enhanced/data-prepare/signer4_sample334/0011_correct_pose.jpg'
 npy_path='/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/train_npy/signer4_sample334_color.mp4.npy'
-
-# Load npy data
-npy = np.load(npy_path).astype(np.float32)
-npy = npy[:, selected_joints, :2]
-
-print(npy[1,shoulder_joints,:])
+name_file = image_path[-8:-4]
+print(name_file)
 
 # Image loading
 image = cv2.imread(image_path)
+
+# Load npy data
+npy = np.load(npy_path).astype(np.float32)
+plot_skeleton_depth(npy[10, :, :], image, name_file)
+npy = npy[:, selected_joints, :2]
+
+print(npy[1,shoulder_joints,:])
 
 # Selection shoulders' joints
 left_shoulder = npy[:, 5, :]
