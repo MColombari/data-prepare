@@ -9,17 +9,16 @@ from PIL import Image
 
 OUT_TEST_FOLDER = "/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/test_folder"
 
-
 def calculate_rotation_angle(joint1, joint2):
     delta_x = joint2[0] - joint1[0]
     delta_y = joint2[1] - joint1[1]
     delta_z = joint2[2] - joint1[2]
-    
+
     angle_no_deepth = np.arctan2(delta_y, delta_x) * 180/np.pi # angle without considering depth
     angle_with_deepth = np.arctan2(delta_z, delta_x) * 180 / np.pi  # angle in plane xz
     #angle_yz = np.arctan2(delta_z, delta_y) * 180 / np.pi  # angle in plane yz
     #angle_with_deepth = np.mean([angle_xz, angle_yz]) # combination of deepth angles
-    
+
     if angle_no_deepth > 90 or angle_with_deepth > 90:
         angle_no_deepth -= 180
         angle_with_deepth -= 180
@@ -27,7 +26,8 @@ def calculate_rotation_angle(joint1, joint2):
     if angle_no_deepth < -90 or angle_with_deepth < -90:
         angle_no_deepth += 180
         angle_with_deepth += 180
-
+    
+    #print(f"delta_x: {delta_x}, delta_y: {delta_y}, delta_z:{delta_z}")
     return angle_no_deepth, angle_with_deepth 
 
 
@@ -73,8 +73,8 @@ selected_joints = np.concatenate(([0,5,6,7,8,9,10],
 shoulder_joints=[5,6]
 
 # Path
-out_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/geometry/rotated_val_npy'
-npy_folder='/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/val_npy'
+out_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/geometry/rotated_test_npy'
+npy_folder='/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/test_npy'
 
 for root, dirs, files in os.walk(npy_folder, topdown=False):
     for name in tqdm(files):
@@ -91,7 +91,7 @@ for root, dirs, files in os.walk(npy_folder, topdown=False):
         center_z = np.mean([left_shoulder[:,2],right_shoulder[:,2]], axis=0)
         #print(f'left_sh: {left_shoulder[1]}, right_sh: {right_shoulder[1]}')
         #print(f'center_x: {center_x[1]}, center_y: {center_y[1]}, center_z: {center_z[1]}')
-
+       
         new_npy_no_deepth=npy.copy()
 
         for i in range(npy.shape[0]):
@@ -100,13 +100,13 @@ for root, dirs, files in os.walk(npy_folder, topdown=False):
 
             #if i == 1:
             #   print(f'angle_no_deepth:{angle_no_deepth}, angle_with_deepth:{angle_with_deepth}')
-            
+
             new_npy_no_deepth[i,:,:2] = joint_rotation(npy[i,:,:2], angle_no_deepth, [int(center_x[i]), int(center_y[i])], type="no_deepth")
-     
+
             #new_npy_with_deepth[i,:,:] = rotate_image_and_joints(npy[i,:,:], angle_with_deepth, [int(center_x[i]), int(center_y[i]), int(center_z[i])], type="with_deepth")
+    
         #print(f"new_npy_shape: {new_npy_no_deepth.shape}")
-        #exit()
         #save
         #np.save(os.path.join(out_folder, name[:-4] + '_rotated.npy'), new_npy_no_deepth)
-        np.save(os.path.join(out_folder, name[:-4] + '.npy'), new_npy_no_deepth) #perchè se no scazza tutto dopo 
+        #np.save(os.path.join(out_folder, name[:-4] + '.npy'), new_npy_no_deepth) #perchè se no scazza tutto dopo 
         

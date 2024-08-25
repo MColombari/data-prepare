@@ -24,17 +24,24 @@ def calculate_rotation_angle(joint1, joint2):
 
     return angle_no_deepth, angle_with_deepth 
 
-def joint_rotation(joints, angle, center, type):
-    ones = np.ones(shape=(joints.shape[0], 1))
-    joints_homogeneous = np.hstack([joints, ones])
-    
-    if type == "no_deepth":
-        M = cv2.getRotationMatrix2D((center[0], center[1]), angle, 1.0)
-        rotated_joints = M.dot(joints_homogeneous.T).T
-    elif type == "with_deepth":
-        M_xz = cv2.getRotationMatrix2D((center[0], center[2]), angle, 1.0)
-        rotated_joints = M_xz.dot(joints_homogeneous[:, [0, 2]].T).T
-    
+def rotate_joints_2d(joints, angle, center):
+    angle_rad = np.deg2rad(angle)  # Convert angle to radians
+    center_x, center_y = center
+
+    # Calculate the cosine and sine of the angle
+    cos_angle = np.cos(angle_rad)
+    sin_angle = np.sin(angle_rad)
+
+    # Translate joints to origin
+    translated_joints = joints - np.array(center)
+
+    # Perform rotation
+    rotated_joints_x = translated_joints[:, 0] * cos_angle - translated_joints[:, 1] * sin_angle
+    rotated_joints_y = translated_joints[:, 0] * sin_angle + translated_joints[:, 1] * cos_angle
+
+    # Translate joints back to original position
+    rotated_joints = np.column_stack((rotated_joints_x + center_x, rotated_joints_y + center_y))
+
     return rotated_joints
 
 def apply_translation(joints, delta, axis=1):
@@ -49,6 +56,9 @@ def apply_translation(joints, delta, axis=1):
     else:
         raise ValueError("Unsupported dimension for joints array")
 
+def calculate_distance(joint, shoulder):
+    return np.linalg.norm(joint - shoulder)
+
 def plot_skeleton_depth(npy, img, name_file):
     position_to_plot = [0, 5, 6, 9, 10]
 
@@ -59,9 +69,6 @@ def plot_skeleton_depth(npy, img, name_file):
         img = cv2.circle(img, (int(x), int(y)), radius=int(20 * npy[pos, 2]), color=(255, 0, 0), thickness=0)
     img = Image.fromarray(img)
     img.save(f'{OUT_TEST_FOLDER}/{name_file}.png')
-
-def calculate_distance(joint, shoulder):
-    return np.linalg.norm(joint - shoulder)
 
 selected_joints = np.concatenate(([0, 5, 6, 7, 8, 9, 10], 
                     [91, 95, 96, 99, 100, 103, 104, 107, 108, 111], 
@@ -85,13 +92,13 @@ for root, dirs, files in os.walk(npy_folder, topdown=False):
         center_z = np.mean([left_shoulder[:, 2], right_shoulder[:, 2]], axis=0)
 
         new_npy_no_deepth = npy.copy()
-        new_npy_with_deepth = npy.copy()
 
         for i in range(npy.shape[0]):
             angle_no_deepth, angle_with_deepth = calculate_rotation_angle(left_shoulder[i], right_shoulder[i])
 
             # Apply rotation to shoulders
-            rotated_shoulders = joint_rotation(npy[i, shoulder_joints, :2], angle_no_deepth, [int(center_x[i]), int(center_y[i])], type="no_deepth")
+            center = (int(center_x[i]), int(center_y[i]))
+            rotated_shoulders = rotate_joints_2d(npy[i, shoulder_joints, :2], angle_no_deepth, center)
             new_npy_no_deepth[i, shoulder_joints, :2] = rotated_shoulders
 
             # Compute the vertical delta for translation
