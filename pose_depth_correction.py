@@ -3,46 +3,44 @@ import numpy as np
 import os
 from tqdm import tqdm
 from PIL import Image
+from scipy.stats import mode
 
 OUT_TEST_FOLDER = "/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/test_folder"
 
 def calculate_rotation_angle(joint1, joint2):
+
     delta_x = joint2[0] - joint1[0]
     delta_y = joint2[1] - joint1[1]
     delta_z = joint2[2] - joint1[2]
+    #print(f"punto1_xyz: {joint1[0]}, {joint1[1]}, {joint1[2]}")
+    #print(f"punto2_xyz: {joint2[0]}, {joint2[1]}, {joint2[2]}")
+    
+    #print(f"delta_x:{delta_x}, delta_y={delta_y}, delta_z:{delta_z}")
     
     angle_no_deepth = np.arctan2(delta_y, delta_x) * 180 / np.pi
     angle_with_deepth = np.arctan2(delta_z, delta_x) * 180 / np.pi
+    angle_for_correction = np.arctan2(delta_z, delta_y) * 180 / np.pi
 
-    if angle_no_deepth > 90 or angle_with_deepth > 90:
+    if angle_no_deepth > 90  :
         angle_no_deepth -= 180
+        
+    if angle_with_deepth > 90:
         angle_with_deepth -= 180
     
-    if angle_no_deepth < -90 or angle_with_deepth < -90:
+    if angle_for_correction > 90:
+        angle_for_correction -= 180
+        
+    if angle_no_deepth < -90  :
         angle_no_deepth += 180
+        
+    if angle_with_deepth < -90:
         angle_with_deepth += 180
-
-    return angle_no_deepth, angle_with_deepth 
-
-def rotate_joints_2d(joints, angle, center):
-    angle_rad = np.deg2rad(angle)  # Convert angle to radians
-    center_x, center_y = center
-
-    # Calculate the cosine and sine of the angle
-    cos_angle = np.cos(angle_rad)
-    sin_angle = np.sin(angle_rad)
-
-    # Translate joints to origin
-    translated_joints = joints - np.array(center)
-
-    # Perform rotation
-    rotated_joints_x = translated_joints[:, 0] * cos_angle - translated_joints[:, 1] * sin_angle
-    rotated_joints_y = translated_joints[:, 0] * sin_angle + translated_joints[:, 1] * cos_angle
-
-    # Translate joints back to original position
-    rotated_joints = np.column_stack((rotated_joints_x + center_x, rotated_joints_y + center_y))
-
-    return rotated_joints
+    
+    if angle_for_correction < -90:
+        angle_for_correction += 180
+    
+    #print(f"angle_no_depth:{angle_no_deepth}, angle_with_depth={angle_with_deepth}, angle_for_correction:{angle_for_correction}")
+    return angle_no_deepth, angle_with_deepth, angle_for_correction
 
 def rotate_joints_3d(joints, angle_x, angle_y, center):
     angle_x_rad = np.deg2rad(angle_x)
@@ -71,40 +69,8 @@ def rotate_joints_3d(joints, angle_x, angle_y, center):
     
     return rotated_joints
 
-def apply_translation_3d(joints, delta, axes=(0, 1, 2)):
-    translation = np.zeros_like(joints)
-    for axis, delta_value in zip(axes, delta):
-        translation[:, axis] = delta_value
-    return joints + translation
-
 def calculate_distance_3d(joint, shoulder):
     return np.linalg.norm(joint - shoulder)
-
-def apply_translation(joints, delta, axis=1):
-    if joints.ndim == 1:
-        translation = np.zeros_like(joints)
-        translation[axis] = delta
-        return joints + translation
-    elif joints.ndim == 2:
-        translation = np.zeros_like(joints)
-        translation[:, axis] = delta
-        return joints + translation
-    else:
-        raise ValueError("Unsupported dimension for joints array")
-
-def calculate_distance(joint, shoulder):
-    return np.linalg.norm(joint - shoulder)
-
-def plot_skeleton_depth(npy, img, name_file):
-    position_to_plot = [0, 5, 6, 9, 10]
-
-    img = np.asarray(img)
-    for pos in position_to_plot:
-        x = 255 - npy[pos, 0]
-        y = npy[pos, 1]
-        img = cv2.circle(img, (int(x), int(y)), radius=int(20 * npy[pos, 2]), color=(255, 0, 0), thickness=0)
-    img = Image.fromarray(img)
-    img.save(f'{OUT_TEST_FOLDER}/{name_file}.png')
 
 selected_joints = np.concatenate(([0, 5, 6, 7, 8, 9, 10], 
                     [91, 95, 96, 99, 100, 103, 104, 107, 108, 111], 
@@ -112,13 +78,13 @@ selected_joints = np.concatenate(([0, 5, 6, 7, 8, 9, 10],
 shoulder_joints = [5, 6]
 
 # Path
-out_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/custom_dataset_rotated_npy'
-npy_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/custom_dataset_npy'
+out_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/custom_dataset_depth_rotated_npy'
+npy_folder = '/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/demo/custom_dataset_depth_npy'
 
 for root, dirs, files in os.walk(npy_folder, topdown=False):
     for name in tqdm(files):
         npy = np.load(os.path.join(npy_folder, name)).astype(np.float32)
-        npy = npy[:, selected_joints, :3]
+        npy = npy[:, :, :3]
 
         left_shoulder = npy[:, 5, :]
         right_shoulder = npy[:, 6, :]
@@ -128,35 +94,124 @@ for root, dirs, files in os.walk(npy_folder, topdown=False):
         center_z = np.mean([left_shoulder[:, 2], right_shoulder[:, 2]], axis=0)
 
         new_npy_depth = npy.copy()
-        new_npy_no_depth = npy.copy()
         
-        for i in range(npy.shape[0]):
-            depth_pxl = left_shoulder[i][2] - right_shoulder [i][2]
-            angle_no_depth, angle_with_depth = calculate_rotation_angle(left_shoulder[i], right_shoulder[i])
-            #fai print angolo con depth
-            delta_x= left_shoulder[i][0] - right_shoulder [i][0]
+        correctionIndex = 1
+        print(f"\n{name}")
+        
+        all_frames_angles= np.zeros((npy.shape[0],3))
+        
+        #angle_video = np.zeros(3)  #--> per contenere i valori ottenuti con la moda
+        #median_angle = np.zeros(3) #--> per contenere i valori ottenuti con la mediana
+        
+        angle_discretized = np.zeros(3)
+        
+        bins_angle= np.zeros((18,3)) #ho 18 bin da 10 gradi ciascuno
+        
+        #salva per tutti i frame i bin incrementati in base all'angolo
+        for k in range(npy.shape[0]):
+            all_frames_angles[k] = calculate_rotation_angle(left_shoulder[k], right_shoulder[k])
+            
+            bin_no_depth = int(all_frames_angles[k][0] // 10)  #primo angolo
+            bin_with_depth = int(all_frames_angles[k][1] // 10) #secondo angolo
+            bin_for_correction = int(all_frames_angles[k][2] // 10) #terzo angolo
+            
+            if bin_no_depth >= 0:
+               bins_angle[bin_no_depth,0] += 1
+            else: 
+                bins_angle[bin_no_depth,0] += 1
+                
+            if bin_with_depth >= 0:
+               bins_angle[bin_with_depth, 1] += 1
+            else: 
+                bins_angle[bin_with_depth, 1] += 1
+                
+            if bin_for_correction >= 0:
+               bins_angle[bin_for_correction,2] += 1
+            else: 
+                bins_angle[bin_for_correction,2] += 1
+        
+        indices_max = np.argmax(bins_angle, axis=0)
+        
+        for i in range(3):
+            if 0 <= indices_max[i] <= 8:
+                angle_discretized[i] = indices_max[i] * 10
+            else:
+                angle_discretized[i] = (18 - indices_max[i]) * -10
+
+        #angle_video[:]= mode(all_frames_angles, axis=0,  keepdims=False).mode[0] #-->trova i valori usando la moda
+        #median_angle[:]= np.median(all_frames_angles, axis=0) #--> trova i valori usando la mediana
+        
+        delta_x = left_shoulder[1][0] - right_shoulder[1][0]
+        delta_y = left_shoulder[1][1] - right_shoulder[1][1]
+        delta_z = left_shoulder[1][2] - right_shoulder[1][2]
+        print(f"Right Shoulder coord: {right_shoulder[1][0]}, {right_shoulder[1][1]}, {right_shoulder[1][2]}")
+        print(f"Left Shoulder coord: {left_shoulder[1][0]}, {left_shoulder[1][1]}, {left_shoulder[1][2]}")
+    
+        print(f"delta_x:{delta_x}, delta_y={delta_y}, delta_z:{delta_z}")
+        print(f"angle discretized: {angle_discretized}")
+        #print(f"Frequent angle value in video (Moda):{angle_video}")
+        #print(f"Central angle values in video (Mediana):{median_angle}")
+        
+        for i in range(0):
+            
+            depth_pxl = left_shoulder[i,2] - right_shoulder [i,2] # è delta z
+            delta_x= left_shoulder[i,0] - right_shoulder [i,0]
+            delta_y = left_shoulder[i,1] - right_shoulder [i,1] 
+            
+            angle_no_depth, angle_with_depth, angle = calculate_rotation_angle(left_shoulder[i], right_shoulder[i])
+            
+            #epsilon = 1e-5  # Tolleranza per il confronto
+            #print(angle_with_depth)
+            #if not (np.isclose(angle_with_depth, 180.0, atol=epsilon) or np.isclose(angle_with_depth, 0.0, atol=epsilon)):
+            #    print(angle_with_depth)
+            #    exit() 
+            
+            #print(correctionIndex)
             #calibration step (depth_pxl= k* depth, con depth=ipotenusa*sin(alfa) con ipotenusa che trovo come distanza 3d )
+            dist3D = calculate_distance_3d(left_shoulder[i], right_shoulder[i])
+            
+            #print(dist3D)
+            left_shoulder_xz = np.array([left_shoulder[i][0], 0, left_shoulder[i][2]], dtype=np.float32)
+            right_shoulder_xz = np.array([right_shoulder[i][0], 0, right_shoulder[i][2]], dtype=np.float32)
+            distXZ = calculate_distance_3d(left_shoulder_xz, right_shoulder_xz)
+            
+            left_shoulder_xy = np.array([left_shoulder[i][0], left_shoulder[i][1], 0], dtype=np.float32)
+            right_shoulder_xy = np.array([right_shoulder[i][0], right_shoulder[i][1], 0], dtype=np.float32)
+            distXY = calculate_distance_3d(left_shoulder_xy, right_shoulder_xy)
+
+            #print(distXY)
+            condition = (depth_pxl == (correctionIndex * np.sin(angle_with_depth)*distXZ))
+            #print(correctionIndex * np.sin(angle_with_depth)*distXY)
+            #print(depth_pxl)
+            
+            
+            if depth_pxl and not (condition):
+                #print("dentro")
+                #print(angle)
+                #print(angle_with_depth)
+                angle_with_depth = angle
+                correctionIndex = depth_pxl / (np.sin(angle_with_depth) * distXY)
+                #print(correctionIndex)
+
+            #print(angle)
+            #print(angle_with_depth)
+            #correctionIndex = depth_pxl / np.sin(angle)* dist3D
+            
             #printa quelli per cui non è rispettata questa cosa
             
-            
-            
             center3D = (int(center_x[i]), int(center_y[i]),int(center_z[i]))
-            rotated3D_shoulders = rotate_joints_3d(npy[i, shoulder_joints, :], angle_no_depth ,angle_with_depth, center3D) #ruoto anche rispetto alla profondità
+            rotated3D_shoulders = rotate_joints_3d(npy[i, shoulder_joints, :3], angle_no_depth ,angle_with_depth, center3D) #ruoto anche rispetto alla profondità
             new_npy_depth[i, shoulder_joints, :] = rotated3D_shoulders
             
-            # Calcola la traduzione per i giunti vicini
-            original_shoulder_y = np.mean(npy[i, shoulder_joints, 1])
-            rotated_shoulder_y = np.mean(rotated3D_shoulders[:, 1])
-            delta_y = rotated_shoulder_y - original_shoulder_y
+            #calcolo distanza sul piano xy prima della rotazione e post rotazione e se è diversa aggiusto le coordinate di un fattore moltiplicativo
+            
+            xy_rotated_distance = new_npy_depth[i, 5 , 1] - new_npy_depth[i, 6 , 1]
+            
 
-            # Determina la vicinanza degli altri giunti alla spalla destra
-            distances_to_right_shoulder = [calculate_distance_3d(npy[i, j, :], right_shoulder[i]) for j in range(npy.shape[1])]
-            distances_to_left_shoulder = [calculate_distance_3d(npy[i, j, :], left_shoulder[i]) for j in range(npy.shape[1])]
-            proximity_indices = [idx for idx in range(npy.shape[1]) if distances_to_right_shoulder[idx] < distances_to_left_shoulder[idx]]
-
-            # Applica la traduzione ai giunti più vicini alla spalla destra
-            for joint_idx in proximity_indices:
-                new_npy_depth[i, joint_idx, :] = apply_translation_3d(npy[i, joint_idx, :], (0, delta_y, 0))
-
-
-        np.save(os.path.join(out_folder, name[:-4] + '.npy'), new_npy_depth)
+        npy = np.load(os.path.join(npy_folder, name)).astype(np.float32)
+        new_npy_depth[:, :, 2] = npy[:, :, 3]
+            
+        #np.save(os.path.join(out_folder, name[:-4] + '.npy'), new_npy_depth)
+        
+        
+            
