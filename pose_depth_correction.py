@@ -55,8 +55,8 @@ def rotate_joints_3d(joints, angle_z, angle_y, center):
                       [0, 1, 0],
                       [-np.sin(angle_y_rad), 0, np.cos(angle_y_rad)]])
 
-    # risp al current frame post moltiplicazione: prima ruoto la z (2d) e poi la y (depth)
-    rot_matrix = np.dot(rot_z, rot_y)
+    # risp al base frame pre-moltiplicazione: prima ruoto la z (2d) e poi la y (depth)
+    rot_matrix = np.dot(rot_y, rot_z)
 
     # Traslazione giunti al centro
     translated_joints = joints - np.array(center)
