@@ -4,8 +4,6 @@ import os
 from tqdm import tqdm
 from PIL import Image
 
-OUT_TEST_FOLDER = "/work/cvcs2024/SLR_sentiment_enhanced/SLRSE_model_data/data-prepare/test_folder"
-
 def calculate_rotation_angle(joint1, joint2):
     delta_x = joint2[0] - joint1[0]
     delta_y = joint2[1] - joint1[1]
@@ -58,17 +56,6 @@ def apply_translation(joints, delta, axis=1):
 
 def calculate_distance(joint, shoulder):
     return np.linalg.norm(joint - shoulder)
-
-def plot_skeleton_depth(npy, img, name_file):
-    position_to_plot = [0, 5, 6, 9, 10]
-
-    img = np.asarray(img)
-    for pos in position_to_plot:
-        x = 255 - npy[pos, 0]
-        y = npy[pos, 1]
-        img = cv2.circle(img, (int(x), int(y)), radius=int(20 * npy[pos, 2]), color=(255, 0, 0), thickness=0)
-    img = Image.fromarray(img)
-    img.save(f'{OUT_TEST_FOLDER}/{name_file}.png')
 
 selected_joints = np.concatenate(([0, 5, 6, 7, 8, 9, 10], 
                     [91, 95, 96, 99, 100, 103, 104, 107, 108, 111], 
