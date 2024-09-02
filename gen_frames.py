@@ -51,7 +51,6 @@ for root, dirs, files in os.walk(folder, topdown=False):
                 if ret:
                     height, width, channels = frame.shape
 
-                    #print(f'image size {height}, {width}')
 
                     frame = cv2.resize(frame, (256,256))
 
@@ -72,5 +71,5 @@ for root, dirs, files in os.walk(folder, topdown=False):
                 if not os.path.exists(os.path.join(out_folder, name[:-10])):
                     os.makedirs(os.path.join(out_folder, name[:-10]))
                 cv2.imwrite(os.path.join(out_folder, name[:-10], '{:04d}.jpg'.format(index)), image)
-                #print(os.path.join(out_folder, name[:-10], '{:04d}.jpg'.format(index)))
+                
 
